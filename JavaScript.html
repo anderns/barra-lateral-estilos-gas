@@ -1,0 +1,129 @@
+<script>
+  // cantidad de estilos
+  let estiloActual = 0;
+
+  function agregarEstilo(numActual){
+
+    // sin parametro
+    if (numActual == null){
+      estiloActual++;
+      numActual = estiloActual; 
+    }
+
+    // creamos el div con el id del estilo
+    let div = document.createElement('div');
+    div.id = 'estilo'+numActual;        
+
+    // agregar elementos al div
+    div.appendChild(crearBotonGuardar(numActual));
+    div.appendChild(crearBotonAplicar(numActual));
+    div.appendChild(crearBotonBorrar(numActual));
+
+    // agregar al div al div donde estan todos los estilos
+    document.getElementById('cajaEstilos').appendChild(div);
+
+  }
+
+  function guardarEstilo(numEstilo){
+    google.script.run.withSuccessHandler(
+      function (obj){
+        let botones = document.getElementsByClassName('boton'+numEstilo);
+        Array.from(botones).forEach(boton => {
+          boton.style.color = obj.colorLetra;
+          boton.style.backgroundColor = obj.colorFondo;
+        });
+      }
+    ).guardarEstilo(numEstilo);
+  }
+
+  window.onload = function(){
+    google.script.run.withSuccessHandler(
+      function (obj){
+        Object.keys(obj).forEach(propiedad => {
+
+          let num = propiedad.slice(10);
+          if (!document.getElementById('estilo'+num) && num!="" && num!="undefined"){
+            agregarEstilo(num);
+          }
+
+          // actualizamos el número del estilo actual
+          if(num>estiloActual){
+            estiloActual=num;
+          }
+
+          // aplicamos los estilos
+          aplicarEstilos(propiedad, obj);
+        })
+      }
+    ).cargarEstilos();
+  }
+
+  function aplicarEstilos(propiedad, obj){
+
+    // guardamos los botones del estilo actual
+    let botones = document.getElementsByClassName('boton'+propiedad.slice(10));
+
+    if(propiedad.slice(0,10) == 'colorFondo'){
+      Array.from(botones).forEach(boton => boton.style.backgroundColor = obj[propiedad]);
+    }
+    else if(propiedad.slice(0,10) == 'colorLetra'){
+      Array.from(botones).forEach(boton => boton.style.color = obj[propiedad]);
+    }
+  }
+
+  function crearBotonGuardar(numActual){
+    let botonPlus = document.createElement('button');
+    botonPlus.classList.add('btn', 'btn-primary', 'boton'+numActual);
+    botonPlus.onclick = () => guardarEstiloActual(numActual);
+
+    // icono +
+    let iconoPlus = document.createElement('i');
+    iconoPlus.classList.add('bi','bi-plus-circle');
+    botonPlus.appendChild(iconoPlus);
+
+    return botonPlus
+  }
+
+  function crearBotonAplicar(numActual){
+    let boton = document.createElement('button');
+    boton.classList.add('btn', 'btn-success', 'm-2', 'boton'+numActual);
+    boton.textContent = 'Aplicar estilo '+numActual;
+    boton.onclick = () => aplicarEstiloActual(numActual);
+
+    return boton
+  }
+
+  function crearBotonBorrar(numActual){
+    let botonBorrar = document.createElement('button');
+    botonBorrar.classList.add('btn', 'btn-danger');
+    botonBorrar.onclick = () => borrarEstiloActual(numActual);
+
+    // icono borrar
+    let iconoBorrar = document.createElement('i');
+    iconoBorrar.classList.add('bi','bi-trash');
+    botonBorrar.appendChild(iconoBorrar);
+
+    return botonBorrar
+  }
+
+  function guardarEstiloActual(numActual){
+    google.script.run.withSuccessHandler(
+      function (obj){
+        let botones = document.getElementsByClassName('boton'+numActual);
+        Array.from(botones).forEach(boton => {
+          boton.style.color = obj.colorLetra;
+          boton.style.backgroundColor = obj.colorFondo;
+        });
+      }
+    ).guardarEstilo(numActual);
+  }
+
+  function aplicarEstiloActual(numActual){
+    google.script.run.aplicarEstilo(numActual);
+  }
+
+  function borrarEstiloActual(numActual){
+    document.getElementById('estilo'+numActual).remove();
+    google.script.run.eliminarEstilo(numActual);
+  }
+</script>
